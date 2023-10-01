@@ -1,5 +1,8 @@
 # kitchen timer round
 
+software and pcb + bom are used from my other timer projekt: https://github.com/hggh/kitchen-timer
+
+
 ## parts
 
 | QTY  | Part Name |
