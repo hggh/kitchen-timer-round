@@ -15,6 +15,7 @@
 #define RT_SW 2
 #define RT_CLK 3
 #define RT_DT 7
+#define EXTRA_BUTTON 8
 #define DISPLAY_CLK A5
 #define DISPLAY_DIO A4
 #define ENABLE_LCD 5
@@ -28,6 +29,7 @@
 
 TM1637Display display(DISPLAY_CLK, DISPLAY_DIO);
 Bounce debouncer = Bounce();
+Bounce extra_button = Bounce();
 Voltage voltage;
 Menu7Seg menu = Menu7Seg();
 TP4056 tp4056 = TP4056();
@@ -61,6 +63,7 @@ const uint8_t FULL_BATT[] = {
 const double battery_low = 2.9;
 
 unsigned long buttonPressTimeStamp;
+unsigned long extra_buttonPressTimeStamp;
 volatile long wakeup_time = 0;
 volatile uint8_t clk_current = 0;
 volatile uint8_t clk_last = 0;
@@ -76,6 +79,7 @@ volatile bool wakeup_via_tp4056 = false;
 
 uint8_t setting_alarm_time_seconds = 20;
 bool button_long_toggle = false;
+bool extra_button_long_toggle = false;
 
 int secondsToDisplay(int i) {
   int h = i / 60;
@@ -234,7 +238,7 @@ void play(short pin, uint16_t frequency, uint16_t duration) {
 
 void play_sound() {
   play_sound_status = 1;
-  short frequency = 3600;
+  short frequency = 4000;
   for (short i = 0; i < (setting_alarm_time_seconds * 2); i++) {
     play(BUZZER_PIN, frequency, 750);
     if (play_sound_status == 2) {
@@ -247,7 +251,7 @@ void play_sound() {
       break;
     }
 
-    if (frequency < 4500) {
+    if (frequency < 4900) {
       frequency += 200;
     }
   }
@@ -276,6 +280,9 @@ void setup() {
   debouncer.attach(RT_SW);
   debouncer.interval(25);
 
+  extra_button.attach(EXTRA_BUTTON, INPUT_PULLUP);
+  extra_button.interval(25);
+
   attachInterrupt(digitalPinToInterrupt(RT_CLK), rt_int_clk, CHANGE);
   attachInterrupt(digitalPinToInterrupt(RT_SW), rt_int_sw, FALLING);
 
@@ -296,9 +303,34 @@ void setup() {
 }
 void loop() {
   debouncer.update();
+  extra_button.update();
   if (debouncer.fell()) {
     buttonPressTimeStamp = millis();
     button_long_toggle = true;
+  }
+  if (extra_button.fell()) {
+    extra_buttonPressTimeStamp = millis();
+    extra_button_long_toggle = true;
+  }
+  if (timer_mode != TIMER_MODE_TIMER_ACTIVE && extra_button.read() == LOW && millis() - extra_buttonPressTimeStamp >= 500 && extra_button_long_toggle == true) {
+    // if button is hold too long only do one action
+    extra_button_long_toggle = false;
+    if (menu.active() == false) {
+      // if timer is not active and we have a long press goto menu
+      menu.enable();
+      timer_mode = TIMER_MODE_MENU_ACTIVE;
+    }
+    else {
+      // if timer is not active and we have a long press and we are inside the menu goto normal mode
+      menu.disable();
+      timer_mode = TIMER_MODE_NOTHING;
+      update_display = true;
+      wakeup_time = millis();
+
+      // save settings into eeprom
+      setting_alarm_time_seconds = menu.get_alarm_timer_seconds();
+      EEPROM.update(EEPROM_ADDRESS_ALARM_TIME, setting_alarm_time_seconds);
+    }
   }
   if (debouncer.read() == LOW && millis() - buttonPressTimeStamp >= 500 && button_long_toggle == true) {
     // if button is hold too long only do one action
@@ -309,24 +341,6 @@ void loop() {
       timer_mode = TIMER_MODE_NOTHING;
       timer_secs = timer_secs_last_start;
       update_display = true;
-    }
-    else {
-      if (menu.active() == false) {
-        // if timer is not active and we have a long press goto menu
-        menu.enable();
-        timer_mode = TIMER_MODE_MENU_ACTIVE;
-      }
-      else {
-        // if timer is not active and we have a long press and we are inside the menu goto normal mode
-        menu.disable();
-        timer_mode = TIMER_MODE_NOTHING;
-        update_display = true;
-        wakeup_time = millis();
-
-        // save settings into eeprom
-        setting_alarm_time_seconds = menu.get_alarm_timer_seconds();
-        EEPROM.update(EEPROM_ADDRESS_ALARM_TIME, setting_alarm_time_seconds);
-      }
     }
     return;
   }
