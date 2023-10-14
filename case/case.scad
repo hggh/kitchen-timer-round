@@ -26,7 +26,7 @@ module switch() {
         translate([3, 2.5, 0]) cylinder(d=2-0.2, h=10);
         translate([3, 2.5+15, 0]) cylinder(d=2-0.2, h=10);
     }
-    translate([0, 4, -16]) cube([6, 12, 16]);
+    translate([0, 4, -29]) cube([6, 12, 29]);
     translate([0.5, 7, 1]) cube([5, 6, 5]);
     }
 }
