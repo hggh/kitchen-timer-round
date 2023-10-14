@@ -138,6 +138,7 @@ module case() {
     }
 }
 
+/* => removed better battery holder extra?
 //stand for battery holder
 translate([28.6, 51.550, SIZE_Z-(12-1.2)]) {
     cube([9, 15, 12-1.2]);
@@ -145,7 +146,9 @@ translate([28.6, 51.550, SIZE_Z-(12-1.2)]) {
 translate([92.4, 51.550, SIZE_Z-(12-1.2)]) {
     cube([9, 15, 12-1.2]);
 }
+*/
 }
+
 
 
 module mutter_holder() {
@@ -232,7 +235,7 @@ module notch_lid() {
 }
 
 translate([0, 0, -30]) {
-    //case();
+    case();
 }
 
 
@@ -240,4 +243,4 @@ translate([0, 0, -50]) {
    //lid();
 }
 
-notch_lid();
+//notch_lid();
