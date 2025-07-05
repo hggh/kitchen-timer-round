@@ -76,6 +76,8 @@ volatile short display_enabled = 0;
 volatile short timer_mode = TIMER_MODE_NOTHING;
 volatile bool update_display = true;
 volatile bool wakeup_via_tp4056 = false;
+volatile bool button_start_timer_disabled = false;
+volatile long button_start_timer_disabled_time = 0;
 
 uint8_t setting_alarm_time_seconds = 20;
 bool button_long_toggle = false;
@@ -173,6 +175,8 @@ void rt_int_sw() {
   // if alarm is current running, abort it
   if (play_sound_status == 1) {
     play_sound_status = 2;
+    button_start_timer_disabled = true;
+    button_start_timer_disabled_time = millis();
   }
 }
 
@@ -238,7 +242,7 @@ void play(short pin, uint16_t frequency, uint16_t duration) {
 
 void play_sound() {
   play_sound_status = 1;
-  short frequency = 4000;
+  short frequency = 5000;
   for (short i = 0; i < (setting_alarm_time_seconds * 2); i++) {
     play(BUZZER_PIN, frequency, 750);
     if (play_sound_status == 2) {
@@ -251,7 +255,7 @@ void play_sound() {
       break;
     }
 
-    if (frequency < 4900) {
+    if (frequency < 5900) {
       frequency += 200;
     }
   }
@@ -348,7 +352,7 @@ void loop() {
     menu.update();
     return;
   }
-  if (debouncer.rose() && timer_mode == TIMER_MODE_NOTHING && debouncer.previousDuration() < 400) {
+  if (debouncer.rose() && timer_mode == TIMER_MODE_NOTHING && debouncer.previousDuration() < 400 && button_start_timer_disabled == false) {
     // check battery level before going to timer
     if (battery_low > (double)voltage.read()) {
       display.setSegments(LOW_BATT);
@@ -367,9 +371,9 @@ void loop() {
     if (timer_secs == 0) {
       disable_timer();
       display.showNumberDecEx(0, 64, true);
+      play_sound();
       timer_mode = TIMER_MODE_NOTHING;
       timer_secs = timer_secs_last_start;
-      play_sound();
 
       // timer is finished, we update display with the last timer pos
       // also set wakeup_via_tp4056 to update display if usb cable is connected
@@ -377,6 +381,9 @@ void loop() {
       update_display = true;
       wakeup_via_tp4056 = true;
     }
+  }
+  if (button_start_timer_disabled == true && millis() - button_start_timer_disabled_time > (600)) {
+    button_start_timer_disabled = false;
   }
 
   if (update_display == true) {
