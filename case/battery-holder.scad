@@ -13,6 +13,7 @@ module mutterr() {
         }
         translate([0, 0, 10]) cube([8.5, 8.5, 20]);
     }
+    translate([20, 10, 0]) cube([9, 15, 12-1.2]);
 }
 
 

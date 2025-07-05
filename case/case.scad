@@ -138,7 +138,7 @@ module case() {
     }
 }
 
-/* => removed better battery holder extra?
+
 //stand for battery holder
 translate([28.6, 51.550, SIZE_Z-(12-1.2)]) {
     cube([9, 15, 12-1.2]);
@@ -146,7 +146,7 @@ translate([28.6, 51.550, SIZE_Z-(12-1.2)]) {
 translate([92.4, 51.550, SIZE_Z-(12-1.2)]) {
     cube([9, 15, 12-1.2]);
 }
-*/
+
 }
 
 
@@ -173,6 +173,7 @@ module lid() {
                 }
                 
             }
+            
             // PCB Holder
             translate([55, 2.9, 1.6]) {
                 cube([20, 11, 12]);
@@ -180,6 +181,10 @@ module lid() {
             translate([52, 3.4, 1.6]) {
                 cube([3, 3, 12]);
             }
+            translate([75, 3.4, 1.6]) {
+                cube([3, 3, 12]);
+            }
+            
             //left notch
             translate([16.370, 39.164, 1.6]) {
                 cube([7, 11+2.4, 5.3]);
@@ -188,8 +193,9 @@ module lid() {
             translate([SIZE_X_OUTSIDE-7-16.370, 39.164, 1.6]) {
                 cube([7, 11+2.4, 5.3]);
             }
+            
         }
-        translate([55, 2.9, 1.6+2+0.1]) {
+        translate([55, 2.9-0.1, 1.6+2+0.1]) {
             pcb();
         }
         translate([55, 5, 4]) cube([30, 30, 30]);
@@ -220,8 +226,22 @@ module lid() {
         translate([61, 72.250, -1]) {
             cube([8, 3.5, 10]);
         }
-    }
+
+        translate([SIZE_X_OUTSIDE/2, SIDE_Y_OUTSIDE/2, 0])
+        linear_extrude(0.2) {
+            rotate([0, 180,0])
+        text("B & S",
+            size=18,
+            font = "Noto Sans:style=SemiBold",
+            halign="center",
+            valign="center",
+            $fn=190
+        );
+        }
+    }  
 }
+
+
 
 module notch_lid() {
     
@@ -235,12 +255,76 @@ module notch_lid() {
 }
 
 translate([0, 0, -30]) {
-    case();
+    //case();
 }
 
 
 translate([0, 0, -50]) {
    //lid();
+/*
+    translate([SIZE_X_OUTSIDE/2, SIDE_Y_OUTSIDE/2, 0]) {
+        linear_extrude(0.2) {
+            rotate([0, 180,0])
+        text("B & S",
+            size=18,
+            font = "Noto Sans:style=SemiBold",
+            halign="center",
+            valign="center",
+            $fn=190
+        );
+        }
+    }
+ */
 }
 
 //notch_lid();
+
+
+
+
+
+module usb() {
+    
+    difference() {
+        union() {
+      
+            
+            // PCB Holder
+            translate([55, 2.9, 1.6]) {
+                cube([20, 11, 12]);
+            }
+            translate([52, 3.4, 1.6]) {
+                cube([3, 3, 12]);
+            }
+            translate([75, 3.4, 1.6]) {
+                cube([3, 3, 12]);
+            }
+            
+
+            
+        }
+        translate([55, 2.9-0.1, 1.6+2+0.1]) {
+            pcb();
+        }
+        translate([55, 5, 4]) cube([30, 30, 30]);
+
+
+        // screws
+        translate([11.620, 54.124, -1]) {
+            cylinder(d=3.2, h=10);
+        }
+        translate([SIZE_X_OUTSIDE-11.620, 54.124, -1]) {
+            cylinder(d=3.2, h=10);
+        }
+        
+        // on/off switch
+        translate([61, 72.250, -1]) {
+            cube([8, 3.5, 10]);
+        }
+
+        
+    }  
+
+}
+
+usb();
